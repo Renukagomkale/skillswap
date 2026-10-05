@@ -1,6 +1,6 @@
 # SkillSwap
 
-Peer-to-peer skill exchange platform. Teach what you know, learn what you don't, no money involved.
+A peer-to-peer skill exchange platform. Teach what you know, learn what you don't — no money involved.
 
 ## Folder structure
 
@@ -10,20 +10,20 @@ skillswap/
   backend/      Express + MongoDB API — handles data, auth, real-time chat
 ```
 
-Dono ek hi parent folder ke andar hain. VS Code mein `skillswap` folder khol lo, do terminal tabs rakho — dono ek saath chalenge, ek dusre se baat karte hain.
+Both live inside one parent folder. Open `skillswap` in your editor and run frontend and backend in two separate terminal tabs — they talk to each other over HTTP and WebSockets.
 
-## How the whole thing works
+## How it works
 
-1. **Backend sabse pehle chalta hai** — ye ek server hai jo port 5000 pe baitha rehta hai, database se baat karta hai, aur frontend ki requests sunta hai.
-2. **Frontend port 5173 pe chalta hai** — jab bhi koi page data maangta hai (jaise Discover page pe users ki list), wo backend ko `http://localhost:5000/api/...` pe request bhejta hai.
-3. **Auth**: Login/Register karte waqt backend ek JWT token deta hai, jo browser ke `localStorage` mein save hota hai. Har request ke saath ye token automatically bheja jata hai (`src/api/client.js` mein ye kaam ho raha hai), backend check karta hai token valid hai ya nahi.
-4. **Real-time chat**: Jab Matches page khulta hai, frontend Socket.io se backend ke saath ek live connection banata hai. Jaise hi koi message bhejta hai, backend turant dusre user tak pahunchata hai — bina page reload kiye.
+1. **The backend** is a server sitting on port 5000. It talks to the database and listens for requests from the frontend.
+2. **The frontend** runs on port 5173. Whenever a page needs data (like the list of users on the Discover page), it calls the backend at `http://localhost:5000/api/...`.
+3. **Auth**: On login/register, the backend returns a JWT token, stored in the browser's `localStorage`. Every subsequent request automatically attaches this token (handled in `src/api/client.js`), and the backend verifies it before allowing access to protected routes.
+4. **Real-time chat**: When the Matches page loads, the frontend opens a live Socket.io connection to the backend. Messages are delivered instantly to the other user — no page refresh needed.
 
 ## Running it locally
 
 ### 1. MongoDB
 
-Local MongoDB install karo, ya [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) pe free cluster bana lo (easier, no install needed).
+Install MongoDB locally, or create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas).
 
 ### 2. Backend
 
@@ -33,17 +33,17 @@ npm install
 cp .env.example .env
 ```
 
-`.env` file khol ke `MONGO_URI` (Atlas ka connection string ya local wala) aur `JWT_SECRET` (koi bhi random long string) daal do. Phir:
+Open `.env` and set `MONGO_URI` (your local or Atlas connection string) and `JWT_SECRET` (any random long string). Then:
 
 ```
 npm run dev
 ```
 
-Terminal mein "Server running on port 5000" dikhna chahiye.
+You should see "Server running on port 5000" in the terminal.
 
 ### 3. Frontend
 
-Naya terminal tab kholo:
+In a new terminal tab:
 
 ```
 cd skillswap/frontend
@@ -52,7 +52,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Browser mein `http://localhost:5173` khul jayega. Pehle `/register` pe jaake account banao, phir Profile mein skills add karo.
+Open `http://localhost:5173` in your browser. Register an account first, then add skills from your Profile page.
 
 ## API reference
 
@@ -63,37 +63,30 @@ GET    /api/users/me             (current user's profile)
 PUT    /api/users/me             { teaches, wants, city }
 GET    /api/users?skill=guitar   (browse/search other users)
 POST   /api/matches              { recipientId }
+GET    /api/matches/requests     (pending swap requests sent to you)
 PATCH  /api/matches/:id          { status: "accepted" | "declined" }
 GET    /api/matches              (your accepted matches)
 GET    /api/matches/:id/messages
 ```
 
-## Pushing to GitHub
+## Features
 
-Pura `skillswap` folder — frontend aur backend dono — ek hi repo mein rakho.
+- JWT-based authentication (register, login)
+- User profiles with skills to teach and skills to learn
+- Skill discovery with search by skill
+- Match requests with accept/decline flow
+- Real-time one-to-one chat via Socket.io, persisted to MongoDB
 
-```
-cd skillswap
-```
+## Tech stack
 
-Root mein ek `.gitignore` banao taaki `node_modules` aur `.env` (jisme secrets hain) GitHub pe na jaye:
+**Frontend:** React (Vite), Tailwind CSS, React Router, Axios, Socket.io Client
+**Backend:** Node.js, Express, MongoDB, Mongoose, JWT, bcrypt, Socket.io
 
-```
-echo "node_modules/
-.env" > .gitignore
-```
+## Deployment
 
-Phir:
+This project isn't deployed yet. To deploy:
+- Frontend → [Vercel](https://vercel.com) or [Netlify](https://netlify.com)
+- Backend → [Render](https://render.com) or [Railway](https://railway.app)
+- Database → [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (free tier)
 
-```
-git init
-git add .
-git commit -m "skillswap: full-stack MERN skill exchange platform"
-git branch -M main
-git remote add origin <tumhara-github-repo-url>
-git push -u origin main
-```
-
-GitHub pe repo pehle khud bana lena (empty, bina README ke) — phir upar wala `remote add` command us repo ka URL use karega.
-
-**Resume/portfolio ke liye**: repo ka README (ye wala) already explain karta hai project kya karta hai aur kaise chalana hai — recruiters jab dekhenge to turant samajh jayenge ye ek complete, working full-stack app hai, sirf UI nahi.
+Update `VITE_API_URL` and `VITE_SOCKET_URL` in the frontend, and `CLIENT_URL` in the backend, to point to the deployed URLs.
